@@ -1,0 +1,39 @@
+import requests
+import subprocess
+
+class YouTubeToMP4Bot:
+    def __init__(self, bot_token):
+        self.bot_token = bot_token
+
+    def convert_youtube_to_mp4(self, youtube_link):
+        # Download the YouTube video.
+        response = requests.get(youtube_link, stream=True)
+
+        # Save the video to a temporary file.
+        with open('video.mp4', 'wb') as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                f.write(chunk)
+
+        # Convert the video to MP4.
+        subprocess.run(['ffmpeg', '-i', 'video.mp4', '-c:v', 'copy', '-c:a', 'copy', 'output.mp4'])
+
+        # Return the MP4 file.
+        with open('output.mp4', 'rb') as f:
+            return f.read()
+
+    def handle_user_request(self, update):
+        # Get the YouTube link from the user.
+        youtube_link = update.message.text
+
+        # Convert the YouTube link to MP4.
+        mp4_file = self.convert_youtube_to_mp4(youtube_link)
+
+        # Send the MP4 file to the user.
+        update.message.reply_document(mp4_file, filename='video.mp4')
+
+if __name__ == '__main__':
+    bot_token = '6465927140:AAETzBF2r_EK6G_uJaRVXzVlOnXaBgIj1Rc'
+
+    bot = YouTubeToMP4Bot(bot_token)
+
+    bot.start()
